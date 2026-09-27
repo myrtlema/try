@@ -1,6 +1,8 @@
 # 專屬 AI 助手 (Telegram Bot)
 
-用 Telegram 當介面、Claude API 當大腦的個人 AI 助手骨架。用途還沒定案,先讓它能在 Telegram 上聊起來,之後再依需求加功能(記憶、工具、特定任務等)。
+用 Telegram 當介面、Google Gemini API 當大腦的個人 AI 助手骨架。用途還沒定案,先讓它能在 Telegram 上聊起來,之後再依需求加功能(記憶、工具、特定任務等)。
+
+用 Gemini API 是因為它有**免費額度、不需要信用卡**,適合先不花錢測試。
 
 ## 運作方式
 
@@ -11,11 +13,11 @@
 ## 前置準備
 
 1. **拿 Telegram Bot Token**:在 Telegram 找 [@BotFather](https://t.me/BotFather),傳 `/newbot`,依指示取名後會拿到一個 token。
-2. **拿 Anthropic API Key**:到 [console.anthropic.com](https://console.anthropic.com/) 建立 API key。
+2. **拿 Gemini API Key**(免費,不需信用卡):到 [Google AI Studio](https://aistudio.google.com/apikey) 用 Google 帳號登入,點「Create API key」。
 
 ## 設定環境變數
 
-需要兩個變數:`TELEGRAM_BOT_TOKEN`、`ANTHROPIC_API_KEY`。
+需要兩個變數:`TELEGRAM_BOT_TOKEN`、`GEMINI_API_KEY`。
 
 - **本機執行**:複製 `.env.example` 成 `.env`,填入對應的值(`.env` 已加入 `.gitignore`,不會被提交)。
 - **在這個雲端環境執行**:到 session 標題列的「Cloud environment」選單裡按 Edit,新增這兩個環境變數,存檔後開新的 session 就會生效。
@@ -31,9 +33,13 @@ python bot.py
 
 程式跑起來後,直接在 Telegram 找到你剛建立的 bot,傳訊息測試。
 
+## 費用
+
+Gemini API 免費額度(截至目前)沒有到期日、不需要信用卡,個人聊天用量的速率限制很寬鬆,一般不會用到需要付費升級的程度。免費額度的方案下,對話內容可能會被 Google 用來改進他們的產品,不適合放機密或敏感內容。
+
 ## 客製化
 
-- `ANTHROPIC_MODEL`:換用的模型,預設 `claude-sonnet-5`。
+- `GEMINI_MODEL`:換用的模型,預設 `gemini-flash-latest`。
 - `ASSISTANT_SYSTEM_PROMPT`:助手的系統提示詞,可以用來定義它的角色、語氣、專長。
 
 ## 部署成 24 小時在線的服務

@@ -1,8 +1,9 @@
 import logging
 import os
 
-from anthropic import Anthropic
 from dotenv import load_dotenv
+from google import genai
+from google.genai import types
 from telegram import Update
 from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandler, filters
 
@@ -22,15 +23,15 @@ def _require_env(name: str) -> str:
 
 
 TELEGRAM_BOT_TOKEN = _require_env("TELEGRAM_BOT_TOKEN")
-ANTHROPIC_API_KEY = _require_env("ANTHROPIC_API_KEY")
-MODEL = os.environ.get("ANTHROPIC_MODEL", "claude-sonnet-5")
+GEMINI_API_KEY = _require_env("GEMINI_API_KEY")
+MODEL = os.environ.get("GEMINI_MODEL", "gemini-flash-latest")
 SYSTEM_PROMPT = os.environ.get(
     "ASSISTANT_SYSTEM_PROMPT",
     "You are a helpful, concise personal assistant reachable over Telegram.",
 )
 MAX_HISTORY_MESSAGES = 20
 
-client = Anthropic(api_key=ANTHROPIC_API_KEY)
+client = genai.Client(api_key=GEMINI_API_KEY)
 histories: dict[int, list[dict]] = {}
 
 
@@ -52,24 +53,25 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     user_text = update.message.text
     history = histories.setdefault(chat_id, [])
 
-    history.append({"role": "user", "content": user_text})
+    history.append({"role": "user", "parts": [{"text": user_text}]})
     del history[:-MAX_HISTORY_MESSAGES]
 
     try:
-        response = client.messages.create(
+        response = client.models.generate_content(
             model=MODEL,
-            max_tokens=1024,
-            system=SYSTEM_PROMPT,
-            messages=history,
+            contents=history,
+            config=types.GenerateContentConfig(
+                system_instruction=SYSTEM_PROMPT, max_output_tokens=1024
+            ),
         )
-        reply_text = response.content[0].text
+        reply_text = response.text
     except Exception:
-        logger.exception("Claude API call failed")
+        logger.exception("Gemini API call failed")
         history.pop()
         await update.message.reply_text("抱歉,剛剛請求 AI 服務時發生錯誤,請稍後再試一次。")
         return
 
-    history.append({"role": "assistant", "content": reply_text})
+    history.append({"role": "model", "parts": [{"text": reply_text}]})
     await update.message.reply_text(reply_text)
 
 
